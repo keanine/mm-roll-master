@@ -8,7 +8,7 @@
 id = "mm_roll_master"
 
 # Version of this mod.
-version = "1.0.0"
+version = "1.1.0"
 
 # The name that will show up for this mod in the mod menu. This should be human readable.
 display_name = "Roll Master"
@@ -72,6 +72,14 @@ Roll even faster with the bunny hood!
 
 Your speed while jumping will be clamped, so you will jump the same distance as the original game, but you can enjoy the benefits of faster movement with this option.
 """
+type = "Enum"
+options = [ "Disabled", "Enabled" ]
+default = "Enabled"
+
+[[manifest.config_options]]
+id = "roll_turning"
+name = "Roll Turning"
+description = "Allows you to turn slightly while rolling, similar to Twilight Princess. Roll turning could cause issues with speedrun tech, so it's recommended to only disable it for those reasons."
 type = "Enum"
 options = [ "Disabled", "Enabled" ]
 default = "Enabled"
