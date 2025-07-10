@@ -8,7 +8,7 @@
 id = "mm_roll_master"
 
 # Version of this mod.
-version = "1.1.0"
+version = "1.2.0"
 
 # The name that will show up for this mod in the mod menu. This should be human readable.
 display_name = "Roll Master"
@@ -80,6 +80,30 @@ default = "Enabled"
 id = "roll_turning"
 name = "Roll Turning"
 description = "Allows you to turn slightly while rolling, similar to Twilight Princess. Roll turning could cause issues with speedrun tech, so it's recommended to only disable it for those reasons."
+type = "Enum"
+options = [ "Disabled", "Enabled" ]
+default = "Enabled"
+
+[[manifest.config_options]]
+id = "input_buffer"
+name = "Roll Input Buffer"
+description = "Add an input buffer to chain together rolls more easily, keeping your max speed high."
+type = "Enum"
+options = [ "Disabled", "Enabled" ]
+default = "Enabled"
+
+[[manifest.config_options]]
+id = "loud_link"
+name = "Loud Link"
+description = "Link shouts every time he rolls."
+type = "Enum"
+options = [ "Disabled", "Enabled" ]
+default = "Enabled"
+
+[[manifest.config_options]]
+id = "no_interruptions"
+name = "No Interruptions"
+description = "Link doesn't try to talk to someone or pickup something in the middle of a roll."
 type = "Enum"
 options = [ "Disabled", "Enabled" ]
 default = "Enabled"

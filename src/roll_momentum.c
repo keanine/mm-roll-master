@@ -1,71 +1,106 @@
-#include "modding.h"
-#include "global.h"
-#include "recomputils.h"
-#include "recompconfig.h"
+#include "roll_momentum.h"
 
 #include "z64player.h"
 
-#define ENABLE_DUST_PARTICLES (bool)recomp_get_config_u32("dust_particles")
-#define ENABLE_BUNNY_ROLL (bool)recomp_get_config_u32("bunny_roll")
-#define ENABLE_ROLL_TURNING (bool)recomp_get_config_u32("roll_turning")
-
-typedef enum PlayerActionInterruptResult {
-    /* -1 */ PLAYER_INTERRUPT_NONE = -1,
-    /*  0 */ PLAYER_INTERRUPT_NEW_ACTION,
-    /*  1 */ PLAYER_INTERRUPT_MOVE
-} PlayerActionInterruptResult;
-
 Vec3f D_8085D270 = { 0.0f, 0.04f, 0.0f };
 Color_RGBA8 D_8085D26C = { 255, 255, 255, 128 };
-
-extern s32 Player_SetAction(PlayState* play, Player* this, PlayerActionFunc actionFunc, s32 arg3);
-extern void Player_Action_13(Player* this, PlayState* play);
-extern void Player_Action_26(Player* this, PlayState* play);
-extern bool func_8083FE38(Player* this, PlayState* play);
-extern s32 func_80840A30(PlayState* play, Player* this, f32* arg2, f32 arg3);
-extern s32 Player_ActionHandler_7(Player* this, PlayState* play);
-extern void func_8083CB58(Player* this, f32 arg1, s16 arg2);
-extern void func_80836A5C(Player* this, PlayState* play);
-extern PlayerActionInterruptResult Player_TryActionInterrupt(PlayState* play, Player* this, SkelAnime* skelAnime, f32 frameRange);
-
-extern s16 sControlStickWorldYaw;
-extern FloorProperty sPrevFloorProperty;
-extern f32 sPlayerYDistToFloor;
-extern f32 sControlStickMagnitude;
 
 Player* mThis;
 PlayState* mPlay;
 f32 mCurrentSpeed;
 
-bool mIsCurrentActionRolling = false;
-bool mIsRolling = false;
-bool mBunnyHoodActive = false;
+bool mProcessingRollAction;
+bool mIsCurrentActionRolling;
+bool mIsRolling;
+bool mBunnyHoodActive;
+bool mTriggeredDuringBuffer;
 
-RECOMP_HOOK_RETURN("Player_UpdateCommon") void return_Player_UpdateCommon() {
+Actor* mTalkActor;
+Actor* mInteractRangeActor;
+PlayerActionFunc mSavedActionFunc;
+
+u16 mSavedSfxId;
+s8* sSavedActionHandlerListIdle;
+
+// Check for bonk without actualy changing any variables
+s32 Player_HasBonked(PlayState* play, Player* this, f32* arg2, f32 arg3) {
+    Actor* cylinderOc = NULL;
+
+    if (arg3 <= *arg2) {
+        // If interacting with a wall and close to facing it
+        if (((this->actor.bgCheckFlags & BGCHECKFLAG_PLAYER_WALL_INTERACT) && (sWorldYawToTouchedWall < 0x1C00)) ||
+            // or, impacting something's cylinder
+            (((this->cylinder.base.ocFlags1 & OC1_HIT) && (cylinderOc = this->cylinder.base.oc) != NULL) &&
+             // and that something is a Beaver Race ring,
+             ((cylinderOc->id == ACTOR_EN_TWIG) ||
+              // or something is a tree and `this` is close to facing it (note the this actor's facing direction would
+              // be antiparallel to the cylinder's actor's yaw if this was directly facing it)
+              (((cylinderOc->id == ACTOR_EN_WOOD02) || (cylinderOc->id == ACTOR_EN_SNOWWD) ||
+                (cylinderOc->id == ACTOR_OBJ_TREE)) &&
+               (ABS_ALT(BINANG_SUB(this->actor.world.rot.y, cylinderOc->yawTowardsPlayer)) > 0x6000))))) {
+
+            if (!func_8082DA90(play)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+RECOMP_HOOK_RETURN("Player_UpdateCommon") void Player_UpdateCommon_Return() {
     mBunnyHoodActive = false;
 }
 
-RECOMP_HOOK("Player_UpdateBunnyEars") void Player_UpdateBunnyEars(Player* player) {
+RECOMP_HOOK("Player_UpdateBunnyEars") void Player_UpdateBunnyEars_Hook(Player* player) {
     if (ENABLE_BUNNY_ROLL) {
         mBunnyHoodActive = true;
     }
 }
 
-RECOMP_HOOK("Player_Action_26") void on_Player_Action_Rolling(Player* this, PlayState* play) {
+RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, PlayState* play) {
     mThis = this;
     mPlay = play;
     mCurrentSpeed = this->speedXZ;
+    mProcessingRollAction = true;
 
-    if ((mThis->av2.actionVar2 == 0) && !func_80840A30(mPlay, mThis, &mThis->speedXZ, 6.0f) &&
-        ((mThis->skelAnime.curFrame < 15.0f) || !Player_ActionHandler_7(mThis, mPlay)) && this->av2.actionVar2 == 0 && this->talkActor == NULL) {
-        
+    if (!ENABLE_LOUD_LINK) {
+        mSavedSfxId = D_8085D61C->sfxId;
+        D_8085D61C->sfxId = NA_SE_NONE;
+    }
+
+    s32 hasBonked = Player_HasBonked(mPlay, mThis, &mThis->speedXZ, 6.0f);
+    bool rollAnimActive = this->skelAnime.animation == D_8085BE84[PLAYER_ANIMGROUP_landing_roll][this->modelAnimType];
+
+    if (ENABLE_INPUT_BUFFER && this->skelAnime.curFrame > 15.0f - INPUT_BUFFER_LENGTH
+        && !hasBonked && CHECK_BTN_ANY(play->state.input->press.button, BTN_A)) {
+        if (rollAnimActive) {
+            mTriggeredDuringBuffer = true;
+        }
+    }
+    else if (this->skelAnime.curFrame <= 15.0f) {
+        mTriggeredDuringBuffer = false;
+    }
+
+    if (this->skelAnime.curFrame > 18.0f && mTriggeredDuringBuffer) {
+        if (rollAnimActive) {
+            this->skelAnime.curFrame = 0.0f;
+        }
+        mTriggeredDuringBuffer = false;
+    }
+
+    if ((mThis->av2.actionVar2 == 0) && !hasBonked &&
+        ((mThis->skelAnime.curFrame < 15.0f) || !Player_ActionHandler_7(mThis, mPlay)) && this->av2.actionVar2 == 0) {
         mIsRolling = true;
     } else {
         mIsRolling = false;
     }
 }
 
-RECOMP_HOOK_RETURN("Player_Action_26") void return_Player_Action_Rolling() {
+RECOMP_HOOK_RETURN("Player_Action_26") void Player_Action_Rolling_Return() {   
+    if (!ENABLE_LOUD_LINK) {
+        D_8085D61C->sfxId = mSavedSfxId;
+    }
+
     if (mIsRolling) {
         if (mThis->actionFunc != Player_Action_26) {
             mIsRolling = false;
@@ -101,16 +136,17 @@ RECOMP_HOOK_RETURN("Player_Action_26") void return_Player_Action_Rolling() {
             }
         }
     }
+    mProcessingRollAction = false;
 }
 
-RECOMP_HOOK("func_808369F4") void on_Enter_Idle(Player* this, PlayState* play) {
+RECOMP_HOOK("func_808369F4") void Enter_Idle_Hook(Player* this, PlayState* play) {
     mThis = this;
     mPlay = play;
     
     mIsCurrentActionRolling = (this->actionFunc == Player_Action_26);
 }
 
-RECOMP_HOOK_RETURN("func_808369F4") void return_Enter_Idle() {
+RECOMP_HOOK_RETURN("func_808369F4") void Enter_Idle_Return() {
     if (func_8083FE38(mThis, mPlay)) {
         return;
     }
@@ -119,10 +155,10 @@ RECOMP_HOOK_RETURN("func_808369F4") void return_Enter_Idle() {
     }
 }
 
-// All of this just to clamp the speed of a jump
-RECOMP_HOOK("func_8083827C") void func_8083827C(Player* this, PlayState* play) {
+RECOMP_HOOK("func_8083827C") void ClampJumpSpeed_Hook(Player* this, PlayState* play) {
     s32 angle;
 
+    // All of this just to clamp the speed of a jump :(
     if (!(this->stateFlags1 & (PLAYER_STATE1_8000000 | PLAYER_STATE1_20000000)) &&
         ((this->stateFlags1 & PLAYER_STATE1_80000000) ||
         !(this->stateFlags3 & (PLAYER_STATE3_200 | PLAYER_STATE3_2000))) &&
