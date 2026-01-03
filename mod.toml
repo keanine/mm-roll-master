@@ -8,7 +8,7 @@
 id = "mm_roll_master"
 
 # Version of this mod.
-version = "1.3.1"
+version = "1.3.2"
 
 # The name that will show up for this mod in the mod menu. This should be human readable.
 display_name = "Roll Master"
@@ -17,11 +17,15 @@ display_name = "Roll Master"
 description =  """
 Link has become a master of somersaults!
 
-This mod improves Link's rolling by removing the brief pause between rolls, allowing for fluid, continuous movement. You also have directional control during a roll, allowing a bit more flexibility in your movement.
+This mod improves Link's rolling by removing the brief pause between rolls, allowing for fluid, continuous movement. It also comes with many additional features that are totally configurable.
 
-Optionally, rolling is even faster when wearing the Bunny Hood, making traversal quicker and more responsive. To keep things balanced, speed is clamped when jumping with the Bunny Hood to prevent unintended skips or sequence breaks.
-
-There are also optional dust particles when you roll to give you a sense of speed, this can be turned off in the config options too.
+Configurable Features:
+- Bunny Hood Roll (includes Better Bunny Hood support)
+- Roll Turning
+- Roll Input Buffer
+- Quiet Link
+- No Interruptions
+- Dust Particles
 """
 
 # A short description that will show up in this mod's entry in the mod list. This should be human readable and kept short

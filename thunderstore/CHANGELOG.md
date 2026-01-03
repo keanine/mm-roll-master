@@ -1,4 +1,7 @@
 # Changelog
+## 1.3.2
+- Removed debug prints.
+
 ## 1.3.1
 - Fixed Better Bunny Hood support. No longer causes crashes when BBH is not present.
 - Changed the Loud Link setting to Quiet Link, enabled by default.

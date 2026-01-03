@@ -50,8 +50,7 @@ s32 Player_HasBonked(PlayState* play, Player* this, f32* arg2, f32 arg3) {
 
 RECOMP_CALLBACK("*", recomp_on_init) void on_init() {
     mBbhAvailable = recomp_is_dependency_met("mm_recomp_better_bunny") == DEPENDENCY_STATUS_FOUND;
-    
-    recomp_printf("recomp_is_dependency_met: %d\n", recomp_is_dependency_met("mm_recomp_better_bunny"));
+    // recomp_printf("recomp_is_dependency_met: %d\n", recomp_is_dependency_met("mm_recomp_better_bunny"));
 }
 
 RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, PlayState* play) {
@@ -65,7 +64,7 @@ RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, Pl
                 mBunnyHoodActive = true;
         }
         else if (mBbhAvailable) {
-            recomp_printf("IsBBHModeEnabled: %d\n", IsBBHModeEnabled());
+            // recomp_printf("IsBBHModeEnabled: %d\n", IsBBHModeEnabled());
             if (IsBBHModeEnabled()) {
                 mBunnyHoodActive = true; 
             }
