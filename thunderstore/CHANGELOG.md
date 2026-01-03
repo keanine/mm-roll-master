@@ -1,4 +1,12 @@
 # Changelog
+## 1.3.1
+- Fixed Better Bunny Hood support. No longer causes crashes when BBH is not present.
+- Changed the Loud Link setting to Quiet Link, enabled by default.
+
+## 1.3.0
+- Updated to Recomp 1.2.1
+- Better Bunny Hood support has been reworked, fixing compatibility with other mods
+
 ## 1.2.0
 - Optional input buffer for rolling
 - Optionally mute Link's iconic yelling while rolling

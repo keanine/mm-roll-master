@@ -8,14 +8,14 @@
 id = "mm_roll_master"
 
 # Version of this mod.
-version = "1.2.0"
+version = "1.3.1"
 
 # The name that will show up for this mod in the mod menu. This should be human readable.
 display_name = "Roll Master"
 
 # The description that will show up when this mod is displayed in the mod menu. This should be human readable.
 description =  """
-Link has become a master of rolling!
+Link has become a master of somersaults!
 
 This mod improves Link's rolling by removing the brief pause between rolls, allowing for fluid, continuous movement. You also have directional control during a roll, allowing a bit more flexibility in your movement.
 
@@ -26,7 +26,7 @@ There are also optional dust particles when you roll to give you a sense of spee
 
 # A short description that will show up in this mod's entry in the mod list. This should be human readable and kept short
 # to prevent it from being cut off due to the limited space.
-short_description = "Roll around at the speed of sound"
+short_description = "Many rolling related tweaks"
 
 # Authors of this mod.
 authors = [ "Keanine" ]
@@ -35,11 +35,18 @@ authors = [ "Keanine" ]
 game_id = "mm"
 
 # Minimum version of the target recomp (e.g. Zelda 64: Recompiled) that this mod can run on.
-minimum_recomp_version = "1.2.0"
+minimum_recomp_version = "1.2.1"
 
 # Dependency mods. Each entry is the mod's ID and then an optional minimum version of the dependency mod.
 dependencies = [
     
+]
+
+# Optional dependency mods. This has the same format as `dependencies`, but the game will still start if dependencies in this
+# list aren't present. You can query the presence of a given dependency by using `recomp_is_dependency_met` in recomputils.h.
+# Calling a function imported from an optional dependency that isn't present will trigger an error.
+optional_dependencies = [
+    "mm_recomp_better_bunny:1.1.0"
 ]
 
 # Native libraries (e.g. DLLs) and the functions they export.
@@ -93,9 +100,9 @@ options = [ "Disabled", "Enabled" ]
 default = "Enabled"
 
 [[manifest.config_options]]
-id = "loud_link"
-name = "Loud Link"
-description = "Link shouts every time he rolls."
+id = "quiet_link"
+name = "Quiet Link"
+description = "Silence Link's shouting whenever he rolls."
 type = "Enum"
 options = [ "Disabled", "Enabled" ]
 default = "Enabled"

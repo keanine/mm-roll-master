@@ -14,6 +14,7 @@ bool mIsCurrentActionRolling;
 bool mIsRolling;
 bool mBunnyHoodActive;
 bool mTriggeredDuringBuffer;
+bool mBbhAvailable;
 
 Actor* mTalkActor;
 Actor* mInteractRangeActor;
@@ -47,14 +48,10 @@ s32 Player_HasBonked(PlayState* play, Player* this, f32* arg2, f32 arg3) {
     return false;
 }
 
-RECOMP_HOOK_RETURN("Player_UpdateCommon") void Player_UpdateCommon_Return() {
-    mBunnyHoodActive = false;
-}
-
-RECOMP_HOOK("Player_UpdateBunnyEars") void Player_UpdateBunnyEars_Hook(Player* player) {
-    if (ENABLE_BUNNY_ROLL) {
-        mBunnyHoodActive = true;
-    }
+RECOMP_CALLBACK("*", recomp_on_init) void on_init() {
+    mBbhAvailable = recomp_is_dependency_met("mm_recomp_better_bunny") == DEPENDENCY_STATUS_FOUND;
+    
+    recomp_printf("recomp_is_dependency_met: %d\n", recomp_is_dependency_met("mm_recomp_better_bunny"));
 }
 
 RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, PlayState* play) {
@@ -63,7 +60,19 @@ RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, Pl
     mCurrentSpeed = this->speedXZ;
     mProcessingRollAction = true;
 
-    if (!ENABLE_LOUD_LINK) {
+    if (ENABLE_BUNNY_ROLL) {
+        if (this->currentMask == PLAYER_MASK_BUNNY) {
+                mBunnyHoodActive = true;
+        }
+        else if (mBbhAvailable) {
+            recomp_printf("IsBBHModeEnabled: %d\n", IsBBHModeEnabled());
+            if (IsBBHModeEnabled()) {
+                mBunnyHoodActive = true; 
+            }
+        }
+    }
+
+    if (ENABLE_QUIET_LINK) {
         mSavedSfxId = D_8085D61C->sfxId;
         D_8085D61C->sfxId = NA_SE_NONE;
     }
@@ -97,7 +106,7 @@ RECOMP_HOOK("Player_Action_26") void Player_Action_Rolling_Hook(Player* this, Pl
 }
 
 RECOMP_HOOK_RETURN("Player_Action_26") void Player_Action_Rolling_Return() {   
-    if (!ENABLE_LOUD_LINK) {
+    if (ENABLE_QUIET_LINK) {
         D_8085D61C->sfxId = mSavedSfxId;
     }
 
@@ -137,6 +146,7 @@ RECOMP_HOOK_RETURN("Player_Action_26") void Player_Action_Rolling_Return() {
         }
     }
     mProcessingRollAction = false;
+    mBunnyHoodActive = false;
 }
 
 RECOMP_HOOK("func_808369F4") void Enter_Idle_Hook(Player* this, PlayState* play) {

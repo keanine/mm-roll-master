@@ -6,11 +6,14 @@
 #include "recomputils.h"
 #include "recompconfig.h"
 
+RECOMP_IMPORT("mm_recomp_better_bunny", u8 IsBBHModeEnabled());
+
+
 #define ENABLE_DUST_PARTICLES (bool)recomp_get_config_u32("dust_particles")
 #define ENABLE_BUNNY_ROLL (bool)recomp_get_config_u32("bunny_roll")
 #define ENABLE_ROLL_TURNING (bool)recomp_get_config_u32("roll_turning")
 #define ENABLE_INPUT_BUFFER (bool)recomp_get_config_u32("input_buffer")
-#define ENABLE_LOUD_LINK (bool)recomp_get_config_u32("loud_link")
+#define ENABLE_QUIET_LINK (bool)recomp_get_config_u32("quiet_link")
 #define ENABLE_NO_INTERRUPTIONS (bool)recomp_get_config_u32("no_interruptions")
 
 #define INPUT_BUFFER_LENGTH 3
