@@ -48,9 +48,6 @@ typedef enum ActionHandlerIndex {
     /* 0xF */ PLAYER_ACTION_HANDLER_MAX
 } ActionHandlerIndex;
 
-extern Vec3f D_8085D270;
-extern Color_RGBA8 D_8085D26C;
-
 extern s32 Player_SetAction(PlayState* play, Player* this, PlayerActionFunc actionFunc, s32 arg3);
 extern void Player_Action_13(Player* this, PlayState* play);
 extern void Player_Action_26(Player* this, PlayState* play);

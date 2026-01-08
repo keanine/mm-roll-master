@@ -2,8 +2,9 @@
 
 #include "z64player.h"
 
-Vec3f D_8085D270 = { 0.0f, 0.04f, 0.0f };
-Color_RGBA8 D_8085D26C = { 255, 255, 255, 128 };
+Vec3f dustAccel = { 0.0f, 0.04f, 0.0f };
+Color_RGBA8 dustColorPrim = { 100, 90, 80, 64 };
+Color_RGBA8 dustColorEnv = { 100, 90, 80, 32 };
 
 Player* mThis;
 PlayState* mPlay;
@@ -137,12 +138,6 @@ RECOMP_HOOK_RETURN("Player_Action_26") void Player_Action_Rolling_Return() {
         }
 
         func_8083CB58(mThis, speedTarget, yawTarget);
-
-        if (ENABLE_DUST_PARTICLES) {
-            if (mThis->skelAnime.curFrame > 6.0f && mThis->skelAnime.curFrame < 16.0f) {
-                EffectSsDust_Spawn(mPlay, 0, &mThis->actor.world.pos, &gZeroVec3f, &D_8085D270, &D_8085D26C, &D_8085D26C, 100, 40, 17, 0);
-            }
-        }
     }
     mProcessingRollAction = false;
     mBunnyHoodActive = false;
@@ -192,4 +187,35 @@ RECOMP_HOOK("func_8083827C") void ClampJumpSpeed_Hook(Player* this, PlayState* p
                 }
             }
         }
+}
+
+RECOMP_HOOK("func_8083FBC4") s32 func_8083FBC4_Hook(PlayState* play, Player* this) {
+    if ((this->floorSfxOffset == NA_SE_PL_WALK_GROUND - SFX_FLAG) ||
+        (this->floorSfxOffset == NA_SE_PL_WALK_SAND - SFX_FLAG) ||
+        (this->floorSfxOffset == NA_SE_PL_WALK_SNOW - SFX_FLAG)) {
+        return false;
+    }
+
+    if (true) { // if ((this->floorSfxOffset == NA_SE_PL_WALK_GRASS - SFX_FLAG)) {
+        if (ENABLE_DUST_PARTICLES) {
+            if (this->skelAnime.curFrame > 6.0f && this->skelAnime.curFrame < 16.0f) {
+                Vec3f* feetPos = this->actor.shape.feetPos;
+                s32 i;
+
+                Vec3f velocity = gZeroVec3f;
+                Math3D_Vec3f_Cross(&this->actor.velocity, &(Vec3f){ 0, 1, 0}, &velocity);
+                Math_Vec3f_Scale(&velocity, 0.2f);
+                Math_Vec3f_Scale(&velocity, Rand_ZeroFloat(2) - 1);
+                velocity.y += Rand_ZeroFloat(2);
+
+                for (i = 0; i < ARRAY_COUNT(this->actor.shape.feetPos); i++) {
+                    EffectSsDust_Spawn(play, 0, &this->actor.world.pos, &velocity, &dustAccel, 
+                        &dustColorPrim, &dustColorEnv, 50, 30, 10, 0);
+                    feetPos++;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
 }
