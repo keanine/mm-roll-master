@@ -1,10 +1,14 @@
 # Changelog
+## 1.3.3
+- Improved dust effect, the now has spread and is darker
+- The dust effect now doesn't appear when dirt, sand or snow partciles are already visible
+
 ## 1.3.2
-- Removed debug prints.
+- Removed debug prints
 
 ## 1.3.1
-- Fixed Better Bunny Hood support. No longer causes crashes when BBH is not present.
-- Changed the Loud Link setting to Quiet Link, enabled by default.
+- Fixed Better Bunny Hood support. No longer causes crashes when BBH is not present
+- Changed the Loud Link setting to Quiet Link, enabled by default
 
 ## 1.3.0
 - Updated to Recomp 1.2.1

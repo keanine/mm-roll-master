@@ -199,7 +199,6 @@ RECOMP_HOOK("func_8083FBC4") s32 func_8083FBC4_Hook(PlayState* play, Player* thi
     if (true) { // if ((this->floorSfxOffset == NA_SE_PL_WALK_GRASS - SFX_FLAG)) {
         if (ENABLE_DUST_PARTICLES) {
             if (this->skelAnime.curFrame > 6.0f && this->skelAnime.curFrame < 16.0f) {
-                Vec3f* feetPos = this->actor.shape.feetPos;
                 s32 i;
 
                 Vec3f velocity = gZeroVec3f;
@@ -211,7 +210,6 @@ RECOMP_HOOK("func_8083FBC4") s32 func_8083FBC4_Hook(PlayState* play, Player* thi
                 for (i = 0; i < ARRAY_COUNT(this->actor.shape.feetPos); i++) {
                     EffectSsDust_Spawn(play, 0, &this->actor.world.pos, &velocity, &dustAccel, 
                         &dustColorPrim, &dustColorEnv, 50, 30, 10, 0);
-                    feetPos++;
                 }
                 return true;
             }
